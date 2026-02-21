@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: transcendence_db
+    environment:
+      POSTGRES_USER: transcendence
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: transcendence_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - transcendence_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: transcendence_backend
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DATABASE_URL: postgresql://transcendence:password@postgres:5432/transcendence_db
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-your-email@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-your-app-password}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    networks:
+      - transcendence_network
+    volumes:
+      - ./backend/src:/app/src
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: transcendence_frontend
+    environment:
+      REACT_APP_API_URL: /api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - transcendence_network
+    volumes:
+      - ./frontend/src:/app/src
+
+volumes:
+  postgres_data:
+
+
+networks:
+  transcendence_network:
+    driver: bridge
