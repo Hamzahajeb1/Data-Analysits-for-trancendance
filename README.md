@@ -161,7 +161,7 @@ All orchestrated with Docker for a clean and reproducible setup.
 
 ## 👤 Author
 
-**p.Prime**  
+**Hamza E**  
 42 Network Student (1337)
 
 ---
